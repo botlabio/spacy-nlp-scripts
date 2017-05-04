@@ -1,0 +1,72 @@
+import pandas as pd
+import spacy as sp
+
+from stopword import stopword
+from ascify import *
+from scrape import *
+
+nlp = sp.load('en')
+stopwords = stopword()
+
+def _get_data(data):
+    
+    '''
+    You should use url2vec() instead. 
+    '''
+
+    if type(data) != 'pandas.core.series.Series':
+
+        data = pd.Series(data)
+
+    temp = [Ascify(line).s.strip() for line in data]
+    
+    text = []
+    for word in temp:
+        if word not in stopwords:
+            if len(word) > 3:
+                text.append(word)
+    
+    out = ''
+
+    for string in text:
+
+         out += " " + string
+
+    text = unicode(out.lower())
+    doc = nlp(text)
+
+    return doc
+
+def vectorize(site):
+    
+    '''
+    You should use url2vec() instead. 
+    '''
+    
+    l = []
+    l2 = []
+    
+    try:
+        s = Scrape(site,'a')
+        doc = _get_data(s.text)
+        l.append(doc.vector)
+        l2.append(site)
+    except:
+        pass
+
+    return l,l2
+
+def url2vec(domains):
+    
+    '''
+    USE: provide one or more domain names (string / list / series)
+    '''
+    
+    l = []
+    
+    if isinstance(domains,str) is not False:
+        return vectorize(domains)[0][0]
+    else:      
+        for site in domains:
+            l.append(vectorize(site)[0][0])
+    return l
